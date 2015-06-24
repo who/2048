@@ -5,8 +5,18 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import io.swagger.client.api.*;
+import io.swagger.client.*;
+import io.swagger.client.model.*;
+
+import android.util.Log;
+import android.os.AsyncTask;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 
 public class MainGame {
 
@@ -71,6 +81,38 @@ public class MainGame {
         mView.refreshLastTime = true;
         mView.resyncTime();
         mView.invalidate();
+        new getFriendlyPets().execute();
+    }
+
+    private class getFriendlyPets extends AsyncTask {
+        @Override
+        protected Object doInBackground(Object[] params) {
+            try {
+                PetApi petClient = new PetApi();
+                List<Pet> friendlyPets = petClient.findPetsByTags(Arrays.asList("friendly"));
+                return friendlyPets;
+            } catch (Exception e) {
+                Log.d("uhoh", e.getMessage());
+            }
+            return null;
+        }
+        @Override
+        protected void onPostExecute(Object result) {
+            try {
+                List<Pet> friendlyPets = (List<Pet>) result;
+                String friendlyPetMessage = "IDs of friendly pets:\n";
+                for (Pet friendlyPet : friendlyPets) {
+                    friendlyPetMessage += friendlyPet.getId() + "\n";
+                }
+                new AlertDialog.Builder(mView.getContext())
+                        .setPositiveButton("Ok", null)
+                        .setTitle("Hello World, swagger-codegen!")
+                        .setMessage(friendlyPetMessage)
+                        .show();
+            } catch(Exception e) {
+                Log.d("uhoh", e.getMessage());
+            }
+        }
     }
 
     private void addStartTiles() {
